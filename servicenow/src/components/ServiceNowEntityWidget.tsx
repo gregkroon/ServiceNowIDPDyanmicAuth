@@ -10,7 +10,7 @@ import {
   StatusWarning,
   StatusAborted,
 } from '@backstage/core-components';
-import { useApi, discoveryApiRef } from '@backstage/core-plugin-api';
+import { useApi, discoveryApiRef, configApiRef } from '@backstage/core-plugin-api';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
@@ -34,7 +34,6 @@ import {
 } from '@material-ui/core';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
-const SERVICENOW_INSTANCE_URL = 'https://ven03172.service-now.com';
 const SERVICENOW_CI_SYSID_ANNOTATION = 'servicenow.com/ci-sysid';
 
 export type Incident = {
@@ -103,6 +102,7 @@ const ChangeStateChip = ({ state }: { state: string }) => {
 export const ServiceNowEntityWidget = () => {
   const { entity } = useEntity();
   const discoveryApi = useApi(discoveryApiRef);
+  const configApi = useApi(configApiRef);
 
   const [viewType, setViewType] = useState<ViewType>('incidents');
   const [stateFilter, setStateFilter] = useState('active=true');
@@ -157,6 +157,21 @@ export const ServiceNowEntityWidget = () => {
   }, [authState.isAuthenticated]);
 
   const ciSysId = entity.metadata.annotations?.[SERVICENOW_CI_SYSID_ANNOTATION] ?? '';
+
+  // Get ServiceNow instance URL from proxy configuration
+  const getServiceNowInstanceUrl = () => {
+    try {
+      // Try to get from Backstage config
+      const proxyConfig = configApi.getOptionalConfig('proxy.endpoints./servicenow');
+      const target = proxyConfig?.getString('target');
+      if (target) {
+        return target.replace(/\/$/, ''); // Remove trailing slash
+      }
+    } catch {
+      // No fallback - return null if config can't be read
+    }
+    return null; // Return null if no config found
+  };
 
   // Create Basic Auth header
   const createAuthHeader = () => {
@@ -406,15 +421,25 @@ export const ServiceNowEntityWidget = () => {
         title: 'Number', 
         field: 'number', 
         width: '10%', 
-        render: (rowData: Incident | Change) => (
-          <a 
-            href={`${SERVICENOW_INSTANCE_URL}/nav_to.do?uri=${viewType === 'incidents' ? 'incident' : 'change_request'}.do?sys_id=${rowData.sys_id}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-          >
-            {rowData.number}
-          </a>
-        ) 
+        render: (rowData: Incident | Change) => {
+          const instanceUrl = getServiceNowInstanceUrl();
+          
+          // Only show link if we have a valid instance URL from config
+          if (instanceUrl) {
+            return (
+              <a 
+                href={`${instanceUrl}/nav_to.do?uri=${viewType === 'incidents' ? 'incident' : 'change_request'}.do?sys_id=${rowData.sys_id}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                {rowData.number}
+              </a>
+            );
+          }
+          
+          // If no URL configured, just show the number as text
+          return <span>{rowData.number}</span>;
+        }
       },
       { title: 'Description', field: 'short_description' },
       { 
