@@ -79,14 +79,17 @@ To connect through the Backstage proxy, update your `app-config.yaml`:
 proxy:
   endpoints:
     /servicenow:
-      target: https://ven03172.service-now.com/
+      target: https://yourinstance.service-now.com/
       credentials: dangerously-allow-unauthenticated
       allowedHeaders:
-        - 'Authorization'
-        - 'Content-Type'
-        - 'Accept'
+        - Authorization
+        - Content-Type
+        - Accept
       pathRewrite:
-        '^/api/proxy/servicenow/?': '/'
+        api/proxy/servicenow/?: /
+customPlugins:
+  servicenow:
+    instanceUrl: https://yourinstance.service-now.com/
 ```
 
 ---
