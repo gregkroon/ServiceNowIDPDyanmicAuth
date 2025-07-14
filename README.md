@@ -1,6 +1,3 @@
-
-
-````markdown
 # ServiceNowAuth Plugin for Harness IDP
 
 A plugin for the [Harness Internal Developer Portal (IDP)](https://developer.harness.io/docs/internal-developer-portal/) that integrates with **ServiceNow** to allow developers to view, create, update, resolve, and close Incidents and Change Requests associated with a service entity.
