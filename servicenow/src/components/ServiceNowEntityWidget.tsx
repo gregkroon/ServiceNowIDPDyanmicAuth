@@ -35,6 +35,7 @@ import {
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 const SERVICENOW_CI_SYSID_ANNOTATION = 'servicenow.com/ci-sysid';
+const SERVICENOW_INSTANCE_URL_ANNOTATION = 'servicenow.com/instance-url';
 
 export type Incident = {
   sys_id: string;
@@ -158,19 +159,45 @@ export const ServiceNowEntityWidget = () => {
 
   const ciSysId = entity.metadata.annotations?.[SERVICENOW_CI_SYSID_ANNOTATION] ?? '';
 
-  // Get ServiceNow instance URL from proxy configuration
+  // Get ServiceNow instance URL from config API
   const getServiceNowInstanceUrl = () => {
-    try {
-      // Try to get from Backstage config
-      const proxyConfig = configApi.getOptionalConfig('proxy.endpoints./servicenow');
-      const target = proxyConfig?.getString('target');
-      if (target) {
-        return target.replace(/\/$/, ''); // Remove trailing slash
-      }
-    } catch {
-      // No fallback - return null if config can't be read
+    console.log('=== ServiceNow URL Resolution Debug ===');
+    
+    // First try entity annotation (highest priority - entity-specific override)
+    const annotationUrl = entity.metadata.annotations?.[SERVICENOW_INSTANCE_URL_ANNOTATION];
+    console.log('1. Entity annotation:', annotationUrl);
+    if (annotationUrl) {
+      console.log('SUCCESS: Using entity annotation URL');
+      return annotationUrl.replace(/\/$/, '');
     }
-    return null; // Return null if no config found
+    
+    // Then try custom plugins config
+    try {
+      const customPluginUrl = configApi.getOptionalString('customPlugins.servicenow.instanceUrl');
+      console.log('2. Custom plugin config:', customPluginUrl);
+      if (customPluginUrl) {
+        console.log('SUCCESS: Using custom plugin config URL');
+        return customPluginUrl.replace(/\/$/, '');
+      }
+    } catch (error) {
+      console.warn('Could not read custom plugin config:', error);
+    }
+    
+    // Then try to read the proxy target directly (no additional config needed)
+    try {
+      const proxyTarget = configApi.getOptionalString('proxy.endpoints./servicenow.target');
+      console.log('3. Proxy target config:', proxyTarget);
+      if (proxyTarget) {
+        console.log('SUCCESS: Using proxy target URL');
+        return proxyTarget.replace(/\/$/, '');
+      }
+    } catch (error) {
+      console.warn('Could not read proxy target:', error);
+    }
+    
+    console.log('FAILED: No ServiceNow URL found in any config source');
+    console.log('=== End Debug ===');
+    return null;
   };
 
   // Create Basic Auth header
@@ -422,13 +449,13 @@ export const ServiceNowEntityWidget = () => {
         field: 'number', 
         width: '10%', 
         render: (rowData: Incident | Change) => {
-          const instanceUrl = getServiceNowInstanceUrl();
+          const serviceNowUrl = getServiceNowInstanceUrl();
           
-          // Only show link if we have a valid instance URL from config
-          if (instanceUrl) {
+          // Only show link if we have a ServiceNow instance URL configured
+          if (serviceNowUrl) {
             return (
               <a 
-                href={`${instanceUrl}/nav_to.do?uri=${viewType === 'incidents' ? 'incident' : 'change_request'}.do?sys_id=${rowData.sys_id}`} 
+                href={`${serviceNowUrl}/nav_to.do?uri=${viewType === 'incidents' ? 'incident' : 'change_request'}.do?sys_id=${rowData.sys_id}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
               >
@@ -508,6 +535,17 @@ export const ServiceNowEntityWidget = () => {
       <InfoCard title="ServiceNow Integration">
         <Alert severity="warning">
           No ServiceNow CI System ID found. Please add the annotation 'servicenow.com/ci-sysid' to your entity.
+        </Alert>
+      </InfoCard>
+    );
+  }
+
+  // Show message if no ServiceNow instance URL configured
+  if (!getServiceNowInstanceUrl()) {
+    return (
+      <InfoCard title="ServiceNow Integration">
+        <Alert severity="warning">
+          No ServiceNow instance URL configured. You can add 'customPlugins.servicenow.instanceUrl' to your app-config.yaml, use the annotation 'servicenow.com/instance-url' on your entity, or the plugin will try to read from your proxy configuration.
         </Alert>
       </InfoCard>
     );
