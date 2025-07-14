@@ -1,7 +1,3 @@
-Here’s a professional and detailed `README.md` for your **Harness IDP - ServiceNow Plugin**:
-
----
-
 # ServiceNow Plugin for Harness IDP (Backstage)
 
 This plugin provides a widget for the [Harness Internal Developer Portal (IDP)](https://developer.harness.io/docs/internal-developer-portal/) built on [Backstage](https://backstage.io/). It enables users to view, create, update, resolve, and close **ServiceNow Incidents and Change Requests** associated with a given software component.
@@ -134,6 +130,3 @@ Contributions are welcome! Please fork the repo and open a PR. For major changes
 
 MIT – see [LICENSE](./LICENSE) file.
 
----
-
-Let me know if you'd like this broken into multiple files (`README.md`, `app-config.yaml` sample, etc.) or if you want deployment instructions for Harness-hosted IDP specifically.
