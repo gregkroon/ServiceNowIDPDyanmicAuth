@@ -1,132 +1,148 @@
-# ServiceNow Plugin for Harness IDP (Backstage)
 
-This plugin provides a widget for the [Harness Internal Developer Portal (IDP)](https://developer.harness.io/docs/internal-developer-portal/) built on [Backstage](https://backstage.io/). It enables users to view, create, update, resolve, and close **ServiceNow Incidents and Change Requests** associated with a given software component.
 
----
+````markdown
+# ServiceNowAuth Plugin for Harness IDP
 
-## ✨ Features
-
-* 🔐 **ServiceNow Basic Auth Login** (per-user session)
-* 📋 View **Incidents** and **Change Requests** linked to a component via the CMDB `ci-sysid`
-* 🔍 Filter and search by state and short description
-* ➕ Create new Incidents or Change Requests
-* ✏️ Update short descriptions
-* ✅ Resolve or Close Incidents / Changes
-* 👁 Open linked ServiceNow records in a new tab
-* 🔄 Session expiration and re-authentication
-* ⚠️ UI feedback for error handling, loading, and invalid states
+A plugin for the [Harness Internal Developer Portal (IDP)](https://developer.harness.io/docs/internal-developer-portal/) that integrates with **ServiceNow** to allow developers to view, create, update, resolve, and close Incidents and Change Requests associated with a service entity.
 
 ---
 
-## 📦 Installation
+## 🚀 Features
 
-1. **Clone or copy the plugin** into your Backstage project.
+- 🔐 Per-user Basic Authentication to ServiceNow
+- 📋 View Incidents and Changes linked to a service’s CMDB CI
+- 🔍 Search and filter by state and short description
+- ➕ Create new Incidents or Change Requests
+- ✏️ Edit short descriptions
+- ✅ Resolve/Close Incidents or Changes
+- 🔗 Deep-link to records in ServiceNow
+- ⏱️ 30-minute session timeout for security
+- ⚠️ Inline error feedback for API/authentication issues
 
-2. Add the component to your plugin or entity page layout:
+---
+
+## 🧩 Layout Configuration (Harness IDP UI)
+
+To make your plugin visible in the Harness IDP UI:
+
+### Tabs and Pages
+
+| Type                | Name                     | Purpose                                           |
+|---------------------|--------------------------|---------------------------------------------------|
+| **Tab**             | `EntityServiceNowContent` | Appears under the service entity tab layout       |
+| **Sidenav Page**    | `ServiceNowPage`          | Full-page experience via the side navigation      |
+
+> These names must match the exports in your plugin code.
+
+### Export Required in Plugin Code
 
 ```ts
-import { ServiceNowEntityWidget } from '../path-to-plugin/ServiceNowEntityWidget';
+export { ServiceNowEntityWidget as EntityServiceNowContent } from './ServiceNowEntityWidget';
+export { ServiceNowEntityWidget as ServiceNowPage } from './ServiceNowEntityWidget';
+````
 
-<EntityPageLayout>
-  ...
-  <EntityLayout.Route path="/servicenow" title="ServiceNow">
-    <ServiceNowEntityWidget />
-  </EntityLayout.Route>
-  ...
-</EntityPageLayout>
-```
+---
 
-3. Add the required entity annotation to your software component in `catalog-info.yaml`:
+## ⚙️ Plugin Metadata
+
+| Field                 | Value                                                     |
+| --------------------- | --------------------------------------------------------- |
+| **Plugin Name**       | `ServicenowAuth`                                          |
+| **Package Name**      | `@internal/plugin-my-plugin`                              |
+| **Description**       | ServiceNow integration for managing Incidents and Changes |
+| **Category**          | ITSM / Incident Management                                |
+| **Created By**        | All Account Users                                         |
+| **Plugin Applies To** | `Service`                                                 |
+
+> Ensure your catalog entity includes the following annotation:
 
 ```yaml
 metadata:
   annotations:
-    servicenow.com/ci-sysid: <your-cmdb-ci-sysid>
-```
-
-4. Add a proxy configuration to your `app-config.yaml`:
-
-```yaml
-proxy:
-  '/servicenow':
-    target: 'https://<your-instance>.service-now.com'
-    changeOrigin: true
-    secure: true
+    servicenow.com/ci-sysid: <your-ci-sys-id>
 ```
 
 ---
 
-## 🔑 Authentication
+## 🔐 Authentication
 
-The widget uses **Basic Auth**. Each user must log in with their ServiceNow credentials. Session expiration is handled with a 30-minute timeout.
+This plugin uses Basic Auth for each user. Upon login:
 
-> Credentials are **not stored** in persistent storage or cookies—only held in-memory during the session.
+* Credentials are used in-memory only during the session
+* No persistent storage is used
+* Session expires after 30 minutes of inactivity
+
+---
+
+## 🌐 Proxy Configuration (Backstage)
+
+To connect through the Backstage proxy, update your `app-config.yaml`:
+
+```yaml
+proxy:
+  endpoints:
+    /servicenow:
+      target: https://ven03172.service-now.com/
+      credentials: dangerously-allow-unauthenticated
+      allowedHeaders:
+        - 'Authorization'
+        - 'Content-Type'
+        - 'Accept'
+      pathRewrite:
+        '^/api/proxy/servicenow/?': '/'
+```
 
 ---
 
 ## 🧠 How it Works
 
-* Uses the \[`cmdb_ci`] relationship to fetch incidents or changes for the linked Configuration Item.
-* Switches between `incident` and `change_request` tables based on the UI tab selected.
-* Fetches data via the Backstage proxy with pagination and filtering support.
-* Exposes actions via menus and dialogs for:
+* Uses the ServiceNow REST API via the Backstage proxy
+* Filters results by `cmdb_ci` sys\_id annotation
+* Provides two views:
 
-  * Creating new items
-  * Updating descriptions
-  * Resolving (Incidents) / Closing (Changes)
-  * Closing (Incidents) / Cancelling (Changes)
+  * **Incidents** (`/table/incident`)
+  * **Changes** (`/table/change_request`)
+* Supports actions: **Create, Update, Resolve, Close**
 
 ---
 
-## 🧪 Example Usage
+## 🖥 Screenshots (Optional)
 
-Once deployed and authenticated, a developer can:
-
-1. See a list of open incidents related to the CI.
-2. Click **Create Incident** to raise a new ticket.
-3. Update ticket details inline.
-4. Click **Resolve** or **Close** from the dropdown menu.
-5. Switch to the **Changes** tab and manage change requests the same way.
+*Add screenshots here if desired.*
 
 ---
 
-## 📌 Dependencies
+## 🛠 Future Enhancements
 
-This plugin uses the following Backstage APIs and components:
-
-* `@backstage/core-components`
-* `@backstage/core-plugin-api`
-* `@backstage/plugin-catalog-react`
-* `@material-ui/core`
-* `@material-ui/lab`
-* `react-use`
+* OAuth 2.0 or ServiceNow token-based authentication
+* Global admin view (not entity-specific)
+* Custom SLA status indicators
+* Linked knowledge articles
 
 ---
 
-## 🛡 Security Notes
+## 🧪 Local Development
 
-* Ensure HTTPS is enforced for all ServiceNow proxy traffic.
-* Do not log ServiceNow credentials.
-* This plugin is intended for use in **trusted internal environments** only.
+To test locally:
 
----
-
-## 🛠 Future Improvements
-
-* OAuth2 support via ServiceNow token endpoints
-* Session refresh tokens or delegated auth
-* Role-based visibility for certain actions
-* SLA tracking and visual indicators
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please fork the repo and open a PR. For major changes, open an issue to discuss what you'd like to improve.
+1. Add the plugin to your Backstage app.
+2. Ensure proxy is configured.
+3. Annotate a `Service` entity with a valid `servicenow.com/ci-sysid`.
+4. Navigate to the plugin tab or page.
 
 ---
 
 ## 📃 License
 
-MIT – see [LICENSE](./LICENSE) file.
+MIT – see [LICENSE](./LICENSE)
 
+---
+
+## 🙋 Support
+
+For questions, reach out via the Harness community Slack or contact your IDP admin.
+
+```
+
+Let me know if you want this split into documentation files, need an icon, or want a sample `catalog-info.yaml` file.
+```
