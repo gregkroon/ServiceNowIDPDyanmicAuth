@@ -110,25 +110,6 @@ customPlugins:
 
 *Add screenshots here if desired.*
 
----
-
-## 🛠 Future Enhancements
-
-* OAuth 2.0 or ServiceNow token-based authentication
-* Global admin view (not entity-specific)
-* Custom SLA status indicators
-* Linked knowledge articles
-
----
-
-## 🧪 Local Development
-
-To test locally:
-
-1. Add the plugin to your Backstage app.
-2. Ensure proxy is configured.
-3. Annotate a `Service` entity with a valid `servicenow.com/ci-sysid`.
-4. Navigate to the plugin tab or page.
 
 ---
 
@@ -136,13 +117,4 @@ To test locally:
 
 MIT – see [LICENSE](./LICENSE)
 
----
-
-## 🙋 Support
-
-For questions, reach out via the Harness community Slack or contact your IDP admin.
-
-```
-
-Let me know if you want this split into documentation files, need an icon, or want a sample `catalog-info.yaml` file.
 ```
