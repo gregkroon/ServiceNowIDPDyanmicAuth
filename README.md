@@ -71,7 +71,7 @@ This plugin uses Basic Auth for each user. Upon login:
 
 ---
 
-## 🌐 Proxy Configuration (Backstage)
+## 🌐 Proxy and Plugin Configuration
 
 To connect through the Backstage proxy, update your `app-config.yaml`:
 
