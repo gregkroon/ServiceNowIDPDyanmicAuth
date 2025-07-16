@@ -27,7 +27,6 @@ To make your plugin visible in the Harness IDP UI:
 | Type                | Name                     | Purpose                                           |
 |---------------------|--------------------------|---------------------------------------------------|
 | **Tab**             | `EntityServiceNowContent` | Appears under the service entity tab layout       |
-| **Sidenav Page**    | `ServiceNowPage`          | Full-page experience via the side navigation      |
 
 > These names must match the exports in your plugin code.
 
@@ -35,7 +34,6 @@ To make your plugin visible in the Harness IDP UI:
 
 ```ts
 export { ServiceNowEntityWidget as EntityServiceNowContent } from './ServiceNowEntityWidget';
-export { ServiceNowEntityWidget as ServiceNowPage } from './ServiceNowEntityWidget';
 ````
 
 ---
@@ -106,9 +104,10 @@ customPlugins:
 
 ---
 
-## 🖥 Screenshots (Optional)
+## Build notes 
 
-*Add screenshots here if desired.*
+* yarn build
+* yarn pack 
 
 
 ---
