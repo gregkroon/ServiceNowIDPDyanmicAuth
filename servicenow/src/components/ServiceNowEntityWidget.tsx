@@ -260,7 +260,7 @@ export const ServiceNowEntityWidget = () => {
       let queryParts = [`cmdb_ci=${ciSysId}`];
       if (stateFilter) queryParts.push(stateFilter);
       if (debouncedDescriptionFilter) queryParts.push(`short_descriptionLIKE${debouncedDescriptionFilter}`);
-      const query = queryParts.join('^');
+      const query = encodeURIComponent(queryParts.join('^'));
       
       const fields = viewType === 'incidents' 
         ? 'sys_id,number,short_description,state,priority,opened_at'
