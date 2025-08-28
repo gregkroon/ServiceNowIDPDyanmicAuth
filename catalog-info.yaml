@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: servicenowidpdyanmicauth
+  tags:
+  - typescript
+  annotations:
+    github.com/project-slug: gregkroon/ServiceNowIDPDyanmicAuth
+    harness: "true"
+    harness.io/language: TypeScript
+    harness.io/source-repo: https://github.com/gregkroon/ServiceNowIDPDyanmicAuth
+spec:
+  type: service
+  lifecycle: production
+  owner: user:account/greg.kroon
